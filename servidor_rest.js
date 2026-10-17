@@ -17,8 +17,13 @@ app.use(express.json());
 
 
 
-// Importamos la conexion con la base de datos MySQL
-var conexion = require("./conexion_mysql.js");
+// Importamos el cliente de Supabase
+const { createClient } = require('@supabase/supabase-js');
+
+// Configuramos con la URL y la anon key de tu proyecto
+const supabaseUrl = 'https://TU-PROYECTO.supabase.co';
+const supabaseKey = 'TU_ANON_KEY';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 //-------------------------------------------------------------------
