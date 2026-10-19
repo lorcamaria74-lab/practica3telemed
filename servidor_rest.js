@@ -12,8 +12,8 @@ var clave = "laClaveSecreta";
 const { createClient } = require('@supabase/supabase-js');
 
 // Configuramos con la URL y la anon key de tu proyecto
-const supabaseUrl = 'https://cibmfinwvhrkbmflsazt.supabase.co';
-const supabaseKey = 'sb_publishable_jXgzSiRE3njWzGoT4dUUIw_zIG9i6Xv';
+const supabaseUrl = 'https://ikmqqsozdbueoxfqeica.supabase.co';
+const supabaseKey = 'sb_publishable_1kpDf5B6vONjfUl-S6isog_CAc9MAol';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware para servir archivos estaticos del cliente
