@@ -818,6 +818,8 @@ async function enviarReservasMinisterio(){
 
 // RANKING DE RESERVAS DEL MINISTERIO
 
+// RANKING DE RESERVAS DEL MINISTERIO
+
 async function cargarRankingMinisterio(){
 
     try {
@@ -846,6 +848,8 @@ async function cargarRankingMinisterio(){
             "Psiquiatría", "Traumatología", "Urología"
         ];
 
+        // Set para almacenar las claves únicas que vayamos encontrando
+        // var reservasDentro = [];
         var totales = Array(19).fill(0); //Creamos un array de 19 posiciones, poniendolas todas a 0.
 
         // Recorremos los registros del Ministerio
@@ -889,7 +893,21 @@ async function cargarRankingMinisterio(){
                 ){
                     continue;
                 }
+/* 
+                // Extraemos las variables del objeto para que no den error
+                var nombre = reserva.nombre.toLowerCase().trim();
+                var apellidos = reserva.apellidos.toLowerCase().trim();
+                var fec_pet = reserva.fec_pet.trim();
+                var cat = categoria.toLowerCase().trim();
+                var horas = reserva.horas_estimadas;
 
+                // 2. Construimos la clave única (incluimos id_area)
+                var claveUnica = id_area + "|" + nombre + "|" + apellidos + "|" + fec_pet + "|" + cat + "|" + horas;
+                if (reservasDentro.includes(claveUnica)) {
+                    continue; // Está repetida, pasamos a la siguiente
+                }
+                reservasDentro.push(claveUnica);
+                */
                 totales[id_area]++;
             }
         }
