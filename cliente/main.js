@@ -852,9 +852,9 @@ async function cargarRankingMinisterio(){
         for(var i = 0; i < datos.length; i++){
 
             var area = datos[i];
-            var id_area = Number(area?.id_area); //? permite acceder al id de area sin dar error en caso de que sea null o undefined. Luego lo convierte a number, si no es un número, a NaN
+            var id_area = Number(area?.id_area); 
 
-            if(!Number.isInteger(id_area) || // si el id_area no es un entero, esta fuera del rango 1 - 18 o no es un array, descarta el envio
+            if(!Number.isInteger(id_area) || 
                id_area < 1 || id_area > 18 ||
                !Array.isArray(area.datos)){
                 continue;
@@ -908,9 +908,7 @@ async function cargarRankingMinisterio(){
         }
 
         // Ordenamos de mayor a menor
-        ranking.sort(function(a, b){
-            return b.total - a.total;
-        });
+        ranking.sort((a, b) => b.total - a.total);
 
         // Rellenamos la tabla
         var tabla = document.getElementById("tabla_ranking");
