@@ -999,7 +999,7 @@ async function mostrarReservasNumero(){
                 ){
                     continue;
                 }
-/* 
+
                 total ++;
             }
         }
