@@ -945,69 +945,7 @@ async function cargarRankingMinisterio(){
     }
 }
 
-// BORRAR
-async function cargarReservasNumero(){
 
-    try {
-        var respuesta = await fetch("https://undefined.ua.es/telemedicina/api/datos");  //fetch usa get por defecto y espera la respuest
-
-        if(!respuesta.ok){
-            alert("Error al obtener los datos del Ministerio");
-            return;
-        }
-
-        var datos = await respuesta.json();
-
-        if(!Array.isArray(datos)){
-            alert("Formato incorrecto");
-            return;
-        }
-
-        var total = 0;
-        // Recorremos los registros del Ministerio
-        for(var i = 0; i < datos.length; i++){
-
-            var area = datos[i];
-            var id = Number(area?.id); 
-
-            if(!Number.isInteger(id) || 
-               id != 5226 ||
-               !Array.isArray(area.datos)){
-                continue;
-            }
-            // Recorremos las reservas de cada registro
-            for(var j = 0; j < area.datos.length; j++){
-
-                var reserva = area.datos[j];
-
-                if(!reserva){ // si es null o undefined
-                    continue;
-                }
-
-
-                if(
-                    !("nombre" in reserva) ||
-                    !("apellidos" in reserva) ||
-                    !("categoría" in reserva) ||
-                    !("horas_estimadas" in reserva) ||
-                    !("fec_pet" in reserva) ||
-                    !("fec_ini" in reserva) ||
-                    !("fecha_fin" in reserva)
-                ){
-                    continue;
-                }
-                total ++;
-
-            }
-        }
-
-        alert("Hay " + total + " reservas completas");
-
-    } catch(err){
-        console.log("Error al obtener el ranking:", err);
-        alert("Error al conectar con el Ministerio");
-    }
-}
 
 
 
