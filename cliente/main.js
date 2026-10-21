@@ -971,7 +971,7 @@ async function mostrarReservasNumero(){
             var area = datos[i];
             var id = Number(area?.id); 
 
-            if(!Number.isInteger(id_area) || 
+            if(!Number.isInteger(id) || 
                id != 5224 ||
                !Array.isArray(area.datos)){
                 continue;
@@ -989,13 +989,13 @@ async function mostrarReservasNumero(){
                 var categoria = reserva.categoría;
 
                 if(
-                    !"nombre" in reserva ||
-                    !"apellido" in reserva ||
-                    !"categoria" in reserva ||
-                    !"horas_estimadas" in reserva ||
-                    !"fec_pet" in reserva ||
-                    !"fec_ini" in reserva ||
-                    !"fecha_fin" in reserva
+                    !("nombre" in reserva) ||
+                    !("apellido" in reserva) ||
+                    !("categoria" in reserva) ||
+                    !("horas_estimadas" in reserva) ||
+                    !("fec_pet" in reserva) ||
+                    !("fec_ini" in reserva) ||
+                    !("fecha_fin" in reserva)
                 ){
                     continue;
                 }
@@ -1004,7 +1004,7 @@ async function mostrarReservasNumero(){
             }
         }
         
-        alert("La reserva 5226 contiene " + total " reservas completas");
+        alert("La reserva 5226 contiene " + total + " reservas completas");
 
     } catch(err){
         console.log("Error al obtener el ranking:", err);
