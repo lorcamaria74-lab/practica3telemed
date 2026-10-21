@@ -550,7 +550,10 @@ function abrirWebSocket() {
         socketGestor.close();
     }
 
-    socketGestor = new WebSocket("ws://localhost:8080");
+    socketGestor = new WebSocket(
+         (window.location.protocol === "https:" ? "wss://" : "ws://") + // obtiene si estamos utilizando http: o https; HTTPS -> wss://    HTTP -> ws://
+         window.location.host // obtiene el dominio y, cuando corresponde, el puerto de la aplicación
+     );
 
     socketGestor.onopen = function() { // Cuando la conexi�n WebSocket se abra correctamente, ejecuta esta funci�n
         // Nos registramos en el servidor WS como gestor
@@ -594,6 +597,11 @@ function anyadirAviso(aviso) {
     // Anyadimos al principio para que los mas recientes salgan arriba
     tabla.innerHTML = fila + tabla.innerHTML;
 }
+
+// comparar fechas -> if (fecha1.substring(0,10) == fecha2.substring(0,10))
+// comparar fechas y horas -> if (new Date(fecha1).getTime() == new Date(fecha2).getTime())
+// comparar texto -> [.value].trim().toLowerCase()
+
 
 // +++++++++++++++++++++++++++++++++++++++ FIN BOTONES Y FUNCIONES DEL INICIO (+aspecto registro) +++++++++++++++++++++++++++++++++++++++
 
@@ -688,30 +696,31 @@ async function enviarReservasMinisterio(){
     try {
 
         // Obtenemos los datos con los GET existentes
-        var respuestaRecursos = await fetch("/api/recursos?token=" + token_gestor);
-        var respuestaSanitarios = await fetch("/api/sanitarios?token=" + token_gestor);
-        var respuestaModelos = await fetch("/api/modelos?token=" + token_gestor);
+        var respuestaRecursos = await fetch("/api/recursos?token=" + token_gestor);  //await espera a que termine cada petición antes de seguir ejecutando
+        var respuestaSanitarios = await fetch("/api/sanitarios?token=" + token_gestor);  //fetch realiza petición HTTP GET
+        var respuestaModelos = await fetch("/api/modelos?token=" + token_gestor); // no contiene modelos, sino un objeto Response
         var respuestaCategorias = await fetch("/api/categorias?token=" + token_gestor);
 
-        if(!respuestaRecursos.ok || !respuestaSanitarios.ok ||
+        if(!respuestaRecursos.ok || !respuestaSanitarios.ok ||  // comprobar que las peticiones han funcionado (entre 200 y 209)
            !respuestaModelos.ok || !respuestaCategorias.ok){
             alert("Error al obtener los datos");
             return;
         }
 
-        // convierte el cuerpo a json
-        var recursos = await respuestaRecursos.json();
+        //convertir las respuestas a json
+        var recursos = await respuestaRecursos.json(); // también se utiliza await porque devuelve promesa
         var sanitarios = await respuestaSanitarios.json();
         var modelos = await respuestaModelos.json();
         var categorias = await respuestaCategorias.json();
 
+        // comprobar que los datos son arrays
         if(!Array.isArray(recursos) || !Array.isArray(sanitarios) ||
            !Array.isArray(modelos) || !Array.isArray(categorias)){
             alert("Formato de datos incorrecto");
             return;
         }
 
-        var datosPreparados = [];
+        var datosPreparados = []; //Array donde guardamos reservas que vamos a enviar
 
         // Recorremos los recursos
         for(var i = 0; i < recursos.length; i++){
@@ -719,11 +728,12 @@ async function enviarReservasMinisterio(){
             var recurso = recursos[i];
 
             // Buscamos el modelo y la categoría del recurso
-            var modelo = modelos.find(m => m.id == recurso.modelo);
-            var categoria = modelo && categorias.find(c => c.id == modelo.cat);
+            var modelo = modelos.find(m => m.id == recurso.modelo); // busca el primer elemento que cumpla la condición
+            var categoria = modelo && categorias.find(c => c.id == modelo.cat); //primero comprueba que hemos encontrado el modelo
 
-            if(!categoria || !categoria.nom?.trim()){
-                continue;
+            // comprueba si el nombre de la categoría existe o está vacío.
+            if(!categoria || !categoria.nom?.trim()){ // El ?. evita intentar llamar a trim() si nom es null o undefined.
+                continue; // pasa al siguiente recurso del for
             }
 
             // Obtenemos las reservas de este recurso
@@ -741,6 +751,7 @@ async function enviarReservasMinisterio(){
                 return;
             }
 
+            //Recorremos las reservas de ese recurso
             for(var j = 0; j < reservas.length; j++){
 
                 var reserva = reservas[j];
@@ -753,14 +764,15 @@ async function enviarReservasMinisterio(){
 
                 // Comprobamos los datos obligatorios
                 if(!sanitario ||
-                   !sanitario.nom?.trim() ||
+                   !sanitario.nom?.trim() || // comprueba si existe y si está vacío
                    !sanitario.apell?.trim() ||
                    !reserva.fecha_peticion ||
-                   !Number.isFinite(Number(reserva.h_estimada)) ||
-                   Number(reserva.h_estimada) <= 0){
+                   !Number.isFinite(Number(reserva.h_estimada)) || // que las horas se puedan convertir en un número finito
+                   Number(reserva.h_estimada) <= 0){  // lo convierte en número y lo compara
                     continue;
                 }
 
+                //Añadir la reserva válida al array
                 datosPreparados.push({
                     nombre: sanitario.nom,
                     apellidos: sanitario.apell,
@@ -776,7 +788,7 @@ async function enviarReservasMinisterio(){
         // Preparamos el objeto que pide el Ministerio
         var datosMinisterio = {
             id_area: 14,
-            fecha: new Date().toISOString().substring(0,10),
+            fecha: new Date().toISOString().substring(0,10),  //fecha en formato YYYY-MM-DD
             datos: datosPreparados
         };
 
@@ -790,12 +802,12 @@ async function enviarReservasMinisterio(){
         }
 
         // Enviamos los datos al Ministerio mediante POST
-        var respuestaMinisterio = await fetch(
-            "https://undefined.ua.es/telemedicina/api/datos",
+        var respuestaMinisterio = await fetch( 
+            "https://undefined.ua.es/telemedicina/api/datos", // petición HTTP a la API externa del Ministerio
             {
-                method: "POST",
+                method: "POST", //si no se indica es GET por defecto
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json"  //el cuerpo es JSON
                 },
                 body: JSON.stringify(datosMinisterio)
             }
@@ -821,7 +833,7 @@ async function enviarReservasMinisterio(){
 async function cargarRankingMinisterio(){
 
     try {
-        var respuesta = await fetch("https://undefined.ua.es/telemedicina/api/datos");  //fetch usa get por defecto y espera la respuest
+        var respuesta = await fetch("https://undefined.ua.es/telemedicina/api/datos");
 
         if(!respuesta.ok){
             alert("Error al obtener los datos del Ministerio");
@@ -835,7 +847,6 @@ async function cargarRankingMinisterio(){
             return;
         }
 
-        //ponemos nombreAreas[0] = "" para que el indice coincida con el número de area
         var nombresAreas = [
             "",
             "Alergología", "Anestesiología", "Cardiología",
@@ -846,19 +857,17 @@ async function cargarRankingMinisterio(){
             "Psiquiatría", "Traumatología", "Urología"
         ];
 
-        // Set para almacenar las claves únicas que vayamos encontrando
-        // var reservasDentro = [];
-        var totales = Array(19).fill(0); //Creamos un array de 19 posiciones, poniendolas todas a 0.
+        var totales = Array(19).fill(0); //para contar el número de reservas válidas. Inicializa array con ceros
 
         // Recorremos los registros del Ministerio
         for(var i = 0; i < datos.length; i++){
 
-            var area = datos[i];
-            var id_area = Number(area?.id_area); 
+            var area = datos[i]; //datos de un post de un área en el servidor
+            var id_area = Number(area?.id_area); //?. permite acceder a id_area que dé error si area es null o undefined
 
-            if(!Number.isInteger(id_area) || 
+            if(!Number.isInteger(id_area) ||
                id_area < 1 || id_area > 18 ||
-               !Array.isArray(area.datos)){
+               !Array.isArray(area?.datos)){
                 continue;
             }
 
@@ -867,45 +876,27 @@ async function cargarRankingMinisterio(){
 
                 var reserva = area.datos[j];
 
-                if(!reserva){ // si es null o undefined
+                if(!reserva){
                     continue;
                 }
-
-                var categoria = reserva.categoría;
 
                 if(
                     typeof reserva.nombre !== "string" ||
                     !reserva.nombre.trim() ||
                     typeof reserva.apellidos !== "string" ||
                     !reserva.apellidos.trim() ||
-                    typeof categoria !== "string" ||
-                    !categoria.trim() ||
-                    typeof reserva.fec_pet !== "string" ||
-                    !reserva.fec_pet.trim() ||
+                    typeof reserva.categoría !== "string" ||
+                    !reserva.categoría.trim() ||
+                    typeof reserva.fec_pet !== "string" ||  //que sea cadena de texto
+                    !reserva.fec_pet.trim() || // que no esté vacía
+                    Number.isNaN(Date.parse(reserva.fec_pet)) || // que se interprete como fecha
                     reserva.horas_estimadas == null ||
                     !Number.isFinite(Number(reserva.horas_estimadas)) ||
-                    Number(reserva.horas_estimadas) <= 0 ||
-                    !reserva.fec_pet.includes(":") ||  // Comprobar que las fechas tengan hora
-                    (reserva.fec_ini != null && !String(reserva.fec_ini).includes(":")) ||
-                    (reserva.fecha_fin != null && !String(reserva.fecha_fin).includes(":"))
+                    Number(reserva.horas_estimadas) <= 0
                 ){
                     continue;
                 }
-/* 
-                // Extraemos las variables del objeto para que no den error
-                var nombre = reserva.nombre.toLowerCase().trim();
-                var apellidos = reserva.apellidos.toLowerCase().trim();
-                var fec_pet = reserva.fec_pet.trim();
-                var cat = categoria.toLowerCase().trim();
-                var horas = reserva.horas_estimadas;
 
-                // 2. Construimos la clave única (incluimos id_area)
-                var claveUnica = id_area + "|" + nombre + "|" + apellidos + "|" + fec_pet + "|" + cat + "|" + horas;
-                if (reservasDentro.includes(claveUnica)) {
-                    continue; // Está repetida, pasamos a la siguiente
-                }
-                reservasDentro.push(claveUnica);
-                */
                 totales[id_area]++;
             }
         }
@@ -924,7 +915,9 @@ async function cargarRankingMinisterio(){
         }
 
         // Ordenamos de mayor a menor
-        ranking.sort((a, b) => b.total - a.total);
+        ranking.sort(function(a, b){
+            return b.total - a.total; //si es positivo b antes, si es negativo a antes
+        });
 
         // Rellenamos la tabla
         var tabla = document.getElementById("tabla_ranking");
@@ -932,10 +925,10 @@ async function cargarRankingMinisterio(){
 
         for(var i = 0; i < ranking.length; i++){
 
-            var fila = tabla.insertRow();
+            var fila = tabla.insertRow(); //crea una nueva fila <tr> dentro de la tabla
 
-            fila.insertCell().textContent = i + 1; //porque i empieza en 0
-            fila.insertCell().textContent = ranking[i].nombre;
+            fila.insertCell().textContent = i + 1; //posicion
+            fila.insertCell().textContent = ranking[i].nombre; //crea una celda <td> con la posición del ranking
             fila.insertCell().textContent = ranking[i].total;
         }
 
