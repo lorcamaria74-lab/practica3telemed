@@ -816,7 +816,6 @@ async function enviarReservasMinisterio(){
 }
 
 
-// RANKING DE RESERVAS DEL MINISTERIO
 
 // RANKING DE RESERVAS DEL MINISTERIO
 
