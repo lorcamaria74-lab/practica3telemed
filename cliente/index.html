@@ -96,6 +96,8 @@
         <!-- Llama a la funcion JS del main que utiliza el GET de recursos filtrados
         y rellena las filas de la tabla dinamicamente con los recursos que cumplen dichos filtros -->
         <p><button onclick="buscar()">Buscar</button></p>
+        <p><button onclick="cargar_categorias()">Cargar Recurso</button></p>
+
 
         <h2>Recursos</h2>
         <table>
@@ -122,6 +124,11 @@
                 Enviar reservas al Ministerio
             </button>
         </p>
+        <p>
+            <button onclick="cargarReservasNumero()">
+                Cargar
+            </button>
+        </p>
 
         <h3>Ranking de reservas por área médica</h3>
 
@@ -135,6 +142,11 @@
             </thead>
             <tbody id="tabla_ranking"></tbody>
         </table>
+
+
+        <p><label for="nombre_cargar">Nombre: </label><br><input id="nombre_cargar" type="text"/></p>
+        <p><button onclick="cargarFiltroNumero()">Cargar</button></p> <!-- Boton para crear un nuevo recurso. Cambia seccion a "recurso" -->
+       
 
         <h3>Avisos</h3>
         <table>
